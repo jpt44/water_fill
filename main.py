@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
 from water_fill_test import water_fill6
 
 def load_image(path):
@@ -39,8 +40,12 @@ def binarize_image(image,threshold=125):
     image[image>threshold] = 255 #white
     return image
 
-def waterFill(image,charMap,color=False):
+def waterFill(image,charMap,color=False,blur=False):
     h, w = image.shape
+
+    if blur:
+        image=cv2.GaussianBlur(image,ksize=(3,3),sigmaX=2)
+
     boxes = tesseract.image_to_boxes(image,lang="eng",config=r'--oem 3 --psm 3')
     up_thres=0.032
     down_thres=0.095
@@ -49,6 +54,10 @@ def waterFill(image,charMap,color=False):
 
     boxed_image = image.copy()
     if color:boxed_image=cv2.cvtColor(boxed_image,cv2.COLOR_GRAY2BGR)
+
+    # plt.imshow(boxed_image)
+    # plt.waitforbuttonpress(0)
+    # plt.close()
 
     upright = inverted = 0
     for b in boxes.splitlines():
@@ -77,7 +86,10 @@ def waterFill(image,charMap,color=False):
         #Total capacity, not capacity/pixel
         U,D,L,R,_,_=water_fill6(cropped_image_b)
         #Capacity per pixel
-        U,D,L,R=U/cib_area,D/cib_area,L/cib_area,R/cib_area
+        try:
+            U,D,L,R=U/cib_area,D/cib_area,L/cib_area,R/cib_area
+        except ZeroDivisionError:
+            U,D,L,R=0,0,0,0
 
         if U<up_thres:U=0
         if D<down_thres:D=0
@@ -113,17 +125,25 @@ if __name__=="__main__":
                                "CharName":np.str},index_col="Image")
 
     imgName="img1_u.png" #image name
+    deg_of_rt=180 #rotate image before putting through tesseract
+    bl=False #blur before putting through tesseract
 
     #load image as grayscale
     img = load_image(os.path.join(inputPth,imgName))
-    img=rotate_image(img,degree=0)
+    img=rotate_image(img,degree=deg_of_rt)
 
-    res,imgBox,uprightCap,invertedCap = waterFill(img,charMap,color=True)
+    # plt.imshow(img,cmap="gray")
+    # plt.waitforbuttonpress(0)
+    # plt.close()
+
+    res,imgBox,uprightCap,invertedCap = waterFill(img,charMap,
+                                        color=True,blur=bl)
 
     #save image with boxes around chars to outputPth
     save_image(imgBox,pth=outputPth,name=imgName)
 
     print("Result:",res)
+    print("Capacity Needed for Upright: ", 2.5 * invertedCap)
     print("Upright Total Capacity:",uprightCap)
     print("Inverted Total Capacity:", invertedCap)
 

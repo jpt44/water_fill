@@ -30,9 +30,13 @@ def water_fill6(image):
 
     #remove blackspaces from top,bottom,left,right of image
     indices=np.argwhere(image!=0)
-    topRow,leftColumn=np.min(indices,axis=0)
-    bottomRow,rightColumn=np.max(indices,axis=0)
-    image=image[topRow:bottomRow+1,leftColumn:rightColumn+1]
+    if indices.size!=0:
+        topRow,leftColumn=np.min(indices,axis=0)
+        bottomRow,rightColumn=np.max(indices,axis=0)
+        image=image[topRow:bottomRow+1,leftColumn:rightColumn+1]
+    else:
+        h, w = image.shape
+        return 0.0, 0.0, 0.0, 0.0, h, w
 
     h, w = image.shape
 
