@@ -7,6 +7,7 @@
 * Numpy
 * Pandas
 * Sklearn
+* Matplotlib
 
 # Note: After downloading the files, please create the following folders: 
 * Download folder\images 
