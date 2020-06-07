@@ -9,6 +9,6 @@
 * Sklearn
 
 # Note: After downloading the files, please create the following folders: 
-* <Download folder>\images 
+* Download folder\images 
 * images\test 
 * images\box_results 
