@@ -8,6 +8,7 @@
 * Pandas
 * Sklearn
 * Matplotlib
+* Python IDE (recommended PyCharm Community 2020.1)
 
 # Note: After downloading the files, please create the following folders: 
 * Download folder\images 
