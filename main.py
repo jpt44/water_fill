@@ -3,7 +3,6 @@ import numpy as np
 import cv2
 import os
 import pandas as pd
-import matplotlib.pyplot as plt
 from water_fill_test import water_fill6
 
 def load_image(path):
