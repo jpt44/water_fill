@@ -1,6 +1,5 @@
 from pytesseract import pytesseract as tesseract
 import numpy as np
-from PIL import Image
 import cv2
 import os
 import pandas as pd
@@ -16,12 +15,6 @@ def load_image(path):
     img=cv2.imread(path,cv2.IMREAD_UNCHANGED)
 
     return cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-
-def remove_noise(image):
-    """
-    Uses cv2 medianBlur to remove noise
-    """
-    return cv2.medianBlur(image,ksize=3)
 
 def rotate_image(image,degree=0):
     if degree==0:
@@ -79,19 +72,12 @@ def waterFill(image,charMap,color=False):
         cropped_image_b=binarize_image(cropped_image.copy(),threshold=t)
         cropped_image_b=np.abs(cropped_image_b-255) #invert the image
 
-        #side-by side comarison of binarized and non-binarized image
-        # fig,axArr=plt.subplots(1,2)
-        # axArr[0].imshow(cropped_image,cmap="gray")
-        # axArr[1].imshow(cropped_image_b,cmap="gray")
-        # plt.draw()
-        # plt.waitforbuttonpress(0)
-        # plt.close(fig)
-
         #Calculate capacities for character
         cib_h,cib_w=cropped_image_b.shape
         cib_area=cib_h*cib_w
+        #Total capacity, not capacity/pixel
         U,D,L,R,_,_=water_fill6(cropped_image_b)
-        #Capacity per pixel area
+        #Capacity per pixel
         U,D,L,R=U/cib_area,D/cib_area,L/cib_area,R/cib_area
 
         if U<up_thres:U=0
@@ -102,19 +88,10 @@ def waterFill(image,charMap,color=False):
         upright+=D+R
         inverted+=U+L
 
-        # #Calculate error in relation to all characters
-        # uErr = (charMap.loc[:, "Up_Capacity"] - U) ** 2  # sq. error
-        # dErr = (charMap.loc[:, "Down_Capacity"] - D) ** 2  # sq. error
-        # lErr = (charMap.loc[:, "Left_Capacity"] - L) ** 2  # sq. error
-        # rErr = (charMap.loc[:, "Right_Capacity"] - R) ** 2  # sq. error
-        #
-        # totalErr = np.sqrt(uErr + dErr + lErr + rErr)
-        # totalErr.sort_values(inplace=True)
-
         #output image with boxes around tesseract detected characters
         boxed_image = cv2.rectangle(boxed_image, (bx[1], h - bx[2]), (bx[3], h - bx[4]), (80, 176, 0), 0)
 
-    if upright>=inverted:
+    if upright>=2.5*inverted:
         return "upright",boxed_image,upright,inverted
     else:
         return "inverted",boxed_image,upright,inverted
@@ -144,19 +121,15 @@ if __name__=="__main__":
 
     res,imgBox,uprightCap,invertedCap = waterFill(img,charMap,color=True)
 
-    #save image with boxes around chars
+    #save image with boxes around chars to outputPth
     save_image(imgBox,pth=outputPth,name=imgName)
 
-    print("Result",res)
-    print("Upright Total Capacity",uprightCap)
-    print("Inverted Total Capacity", invertedCap)
+    print("Result:",res)
+    print("Upright Total Capacity:",uprightCap)
+    print("Inverted Total Capacity:", invertedCap)
 
     if res=="inverted":
-        img=rotate_image(img)
-
-
-    # newdata = tesseract_detect_orientation(img_rt) #detect orientation
-    # print(newdata)
+        img=rotate_image(img,180)
 
     s=tesseract.image_to_string(img, lang="eng", config=custom_config)
     print(s)
