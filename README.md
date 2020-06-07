@@ -6,3 +6,4 @@
 * Pytesseract
 * Numpy
 * Pandas
+* Sklearn
