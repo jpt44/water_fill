@@ -6,8 +6,7 @@ It accounts for the following English characters: A-Z, a-z, 0-9
 * OpenCV
 * Tesseract-OCR v5.0.0alpha
 * Pytesseract
-* Numpy
+* NumPy
 * Pandas
-* Sklearn
+* Scikit-learn
 * Matplotlib
-* Python IDE (recommended PyCharm Community 2020.1)
